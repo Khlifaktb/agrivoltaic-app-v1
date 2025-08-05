@@ -1,0 +1,111 @@
+<!-- templates/index.html (The Definitive Fix) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-lang-key="window_title">Agrovoltaic Simulation Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Ghadi n7etto les scripts l'te7t bach nضمنو kolchi ytcharga mzyan -->
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- ==== Colonne des Inputs (katb9a nafs'ha) ==== -->
+        <div class="input-frame">
+            <h2 data-lang-key="simulation_parameters">Simulation Parameters</h2>
+            
+            <div class="input-scroll-frame">
+                <!-- 1. Location -->
+                <label class="section-title" data-lang-key="coordinates_location">1. Coordinates & Location</label>
+                <input type="number" id="lat" placeholder="Latitude" value="40.99">
+                <input type="number" id="lon" placeholder="Longitude" value="14.25">
+                <input type="number" id="alt" placeholder="Altitude" value="25">
+
+                <!-- 2. PV System -->
+                <label class="section-title" data-lang-key="pv_system_design">2. PV System Design</label>
+                <input type="number" id="panel_width" placeholder="Panel Width (m)" value="2.38">
+                <input type="number" id="panel_length" placeholder="Panel Length (m)" value="1.13">
+                <input type="number" id="pivot_height" placeholder="Pivot Height (m)" value="2.90">
+                <input type="number" id="max_tilt" placeholder="Max Tilt Angle (°)" value="55">
+                <input type="number" id="axis_azimuth" placeholder="Axis Azimuth (°)" value="180">
+
+                <!-- 3. Crop Requirements -->
+                <label class="section-title" data-lang-key="crop_requirements">3. Crop Requirements</label>
+                <input type="text" id="crop_name" placeholder="Crop Name" value="Asparagus">
+                <input type="number" id="dli_min" placeholder="Min DLI (mol/m²/day)" value="12">
+                <input type="number" id="dli_max" placeholder="Max DLI (mol/m²/day)" value="20">
+                <input type="number" id="temp_min" placeholder="Min Optimal Temp (°C)" value="22">
+                <input type="number" id="temp_max" placeholder="Max Optimal Temp (°C)" value="28">
+
+                <!-- 4. Simulation Mode -->
+                <label class="section-title" data-lang-key="simulation_mode">4. Simulation Mode</label>
+                <div class="radio-group">
+                    <input type="radio" id="mode_opt" name="sim_mode" value="Optimization" checked>
+                    <label for="mode_opt" data-lang-key="optimization_mode">Find Optimal Pitch</label>
+                </div>
+                <div class="radio-group">
+                    <input type="radio" id="mode_custom" name="sim_mode" value="Custom">
+                    <label for="mode_custom" data-lang-key="custom_pitch_mode">Simulate Custom Pitch</label>
+                </div>
+                <input type="number" id="custom_pitch" placeholder="Custom Pitch (m)" value="5.0" disabled>
+            </div>
+
+            <label for="lang_select" data-lang-key="language" class="lang-label">Language</label>
+            <select id="lang_select">
+                <option value="en">English</option>
+                <option value="it">Italiano</option>
+            </select>
+            <button id="run_simulation_btn" data-lang-key="run_simulation">Run Simulation</button>
+        </div>
+
+        <!-- ==== Colonne du Dashboard ==== -->
+        <div class="dashboard-frame">
+            <div id="welcome_message">
+                <h2>Welcome!</h2>
+                <p>Please fill in the parameters and run the simulation.</p>
+            </div>
+            <div id="loading_indicator" style="display: none;">
+                <div class="spinner"></div>
+                <p>Running simulation, please wait...</p>
+            </div>
+            <div id="results_dashboard" style="display: none;">
+                <h2 id="results_title"></h2>
+                <div class="metrics-and-comments">
+                    <div id="key_metrics"></div>
+                    <div id="analysis_comments"></div>
+                </div>
+                <!-- Hna fin ghadi ytrsmo les graphs -->
+                <div id="graphs_container">
+                    <div class="chart-container">
+                        <h3 id="optimizationTitle" style="display: none;">Optimization Results</h3>
+                        <canvas id="optimizationChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 id="irradianceTitle">Summer Solstice Irradiance</h3>
+                        <canvas id="irradianceChart"></canvas>
+                    </div>
+                     <div class="chart-container">
+                        <h3 id="peakTempTitle">Hottest Day Temperature</h3>
+                        <canvas id="peakTempChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 id="monthlyWaterTitle">Monthly Water Savings</h3>
+                        <canvas id="monthlyWaterChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 id="cumulativeWaterTitle">Cumulative Annual Water Savings</h3>
+                        <canvas id="cumulativeWaterChart"></canvas>
+                    </div>
+                </div>
+            </div>
+             <div id="error_message" style="display: none; color: red;"></div>
+        </div>
+    </div>
+
+    <!-- [THE DEFINITIVE FIX] 7ettina kolchi l'scripts hna f'lekher dyal l'body b'tartib s7i7 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.2.1/chartjs-plugin-annotation.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
