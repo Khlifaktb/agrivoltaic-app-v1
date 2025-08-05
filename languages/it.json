@@ -43,5 +43,9 @@
     "peak_temp_open": "Temp Massima Estiva in Campo Aperto",
     "water_comment_title": "\n💡 Analisi Risparmio Idrico:",
     "dli_comment_title": "\n💡 Analisi Luce (DLI):",
-    "temp_comment_title": "\n💡 Analisi Temperatura:"
+    "temp_comment_title": "\n💡 Analisi Temperatura:",
+    // it.json
+"opt_summary_title": "Riepilogo Ottimizzazione",
+"custom_summary_title": "Riepilogo Simulazione Personalizzata",
+    "ai_analysis_title": "🤖 Analisi basata su IA"
 }

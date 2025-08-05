@@ -43,5 +43,10 @@
     "peak_temp_open": "Peak Summer Temp in Open Field",
     "water_comment_title": "\n💡 Water Savings Analysis:",
     "dli_comment_title": "\n💡 Light (DLI) Analysis:",
-    "temp_comment_title": "\n💡 Temperature Analysis:"
+    "temp_comment_title": "\n💡 Temperature Analysis:",
+    // en.json
+"opt_summary_title": "Optimization Summary",
+"custom_summary_title": "Custom Simulation Summary",
+    "ai_analysis_title": "🤖 AI-Powered Analysis"
+
 }
