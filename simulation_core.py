@@ -5,8 +5,6 @@ import pandas as pd
 import numpy as np
 import pvlib
 import pyet
-# Matplotlib mab9inach kan7tajoh hna l'rassm, ghir bach n7eddo style (ymken 7ta n7eydoh)
-import matplotlib.pyplot as plt
 import os
 
 def fetch_pvgis_data(latitude, longitude, altitude):
