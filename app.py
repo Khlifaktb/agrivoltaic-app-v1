@@ -1,168 +1,98 @@
-# app.py
+# app.py (v1.2)
+# Zedna fih les fonctions dyal les commentaires
 
 import os
-from flask import Flask, render_template, request, jsonify, url_for
-import google.generativeai as genai
-import json # Pour charger les fichiers de langue
+import json
+from flask import Flask, request, jsonify, render_template, send_from_directory
+import simulation_core as core
+from datetime import datetime
 
-# --- Simulation Placeholder ---
-# HADI GHI BLASSA DIAL SIMULATION DIALEK L7A9I9IYA
-# Hna ghadi tkon la fonction dialek li kadir l7ssab dial simulation
-def perform_actual_simulation(inputs):
-    # DÉBUT DU CODE DE SIMULATION FACTICE (À REMPLACER)
-    # Dans un vrai cas, vous utiliseriez les 'inputs' pour calculer des vrais résultats.
-    import random
-    mode = inputs.get('mode')
-    results = {}
-    graph_data = {}
-
-    if mode == 'Optimization':
-        optimal_pitch = random.uniform(5.0, 7.0)
-        max_savings = random.uniform(25.0, 40.0)
-        results = {
-            "pitch": optimal_pitch,
-            "water_savings_percent": max_savings
-        }
-        graph_data['optimization'] = {
-            "labels": [p/10 for p in range(30, 101)],
-            "datasets": [{
-                "label": "Water Savings (%)",
-                "data": [max_savings * (1 - ((p/10 - optimal_pitch)**2) / 25) for p in range(30, 101)],
-                "borderColor": "blue"
-            }],
-            "optimal_pitch": optimal_pitch,
-            "max_savings": max_savings
-        }
+# --- [NEW v1.2] Fonctions pour générer les commentaires ---
+def _generate_water_comment(water_savings_percent, et_open_mm, et_agri_mm):
+    saved_mm = et_open_mm - et_agri_mm
+    saved_tonnes_per_ha = saved_mm * 10
+    text = f"This amounts to an estimated saving of {saved_tonnes_per_ha:.0f} tonnes of water per hectare per year."
+    if water_savings_percent < 8:
+        return text + " This is a modest saving, but still beneficial.", "warn"
+    elif water_savings_percent < 15:
+        return text + " This is a significant saving, contributing well to water conservation.", "good"
     else:
-        results = {
-            "water_savings": random.uniform(15.0, 30.0),
-            "dli_agri": random.uniform(15.0, 22.0),
-            "dli_open": random.uniform(25.0, 35.0),
-            "peak_temp_agri": random.uniform(28.0, 32.0),
-            "peak_temp_open": random.uniform(35.0, 40.0)
-        }
+        return text + " This is an excellent level of water savings, making a major impact on local water resources!", "good"
 
-    # Données factices communes pour les graphiques
-    graph_data['irradiance'] = {"labels": ["6am", "9am", "12pm", "3pm", "6pm"], "datasets": [{"label": "Ground", "data": [50, 400, 600, 350, 40]}, {"label": "Open", "data": [60, 500, 900, 450, 50]}]}
-    graph_data['peak_temp'] = {"title": "Hottest Day Temp", "labels": ["6am", "9am", "12pm", "3pm", "6pm"], "datasets": [{"label": "Agri", "data": [22, 26, 29, 31, 27]}, {"label": "Open", "data": [23, 29, 35, 38, 32]}]}
-    graph_data['monthly_water'] = {"labels": ["J", "F", "M", "A", "M", "J"], "datasets": [{"label": "Savings", "data": [10, 15, 20, 30, 35, 40]}]}
-    graph_data['cumulative_water'] = {"labels": ["J", "F", "M", "A", "M", "J"], "datasets": [{"label": "Cumulative", "data": [10, 25, 45, 75, 110, 150]}]}
-    # FIN DU CODE DE SIMULATION FACTICE
-
-    return results, graph_data
-
-# --- Configuration de l'API Google ---
-try:
-    GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
-    if not GOOGLE_API_KEY:
-        print("AVERTISSEMENT: La clé GOOGLE_API_KEY n'est pas définie. L'IA sera désactivée.")
+def _generate_dli_comment(dli_agri, crop_params):
+    dli_min = crop_params['dli_min']
+    dli_max = crop_params['dli_max']
+    crop_name = crop_params.get('name', "the crop")
+    if dli_agri < dli_min * 0.8:
+        return f"The light level ({dli_agri:.1f}) is critically low, well below the minimum of {dli_min} required by {crop_name}. Crop failure is likely.", "bad"
+    elif dli_agri < dli_min:
+        return f"The light level ({dli_agri:.1f}) is below the recommended minimum of {dli_min} for {crop_name}. This could stress the plant and reduce yield.", "warn"
+    elif dli_agri <= dli_max:
+        return f"The light level ({dli_agri:.1f}) is within the optimal range for {crop_name} ({dli_min} - {dli_max}). Conditions are ideal.", "good"
     else:
-        genai.configure(api_key=GOOGLE_API_KEY)
-except Exception as e:
-    print(f"Erreur lors de la configuration de l'API Google: {e}")
-    GOOGLE_API_KEY = None
+        return f"The light level ({dli_agri:.1f}) exceeds the optimal maximum of {dli_max} for {crop_name}. Shading effect is minimal in summer.", "good"
 
-# --- Nouvelle fonction IA (adaptée à votre code) ---
-def generate_ai_comment(crop_params, sim_results, lang='en'):
-    """
-    Génère un commentaire IA et le retourne dans le format attendu par le script JS.
-    """
-    if not GOOGLE_API_KEY:
-        # Retourne un commentaire par défaut si l'IA n'est pas configurée
-        return {
-            "tag": "ai-disabled",
-            "title_key": "ai_analysis_title",
-            "text": "AI analysis is currently disabled. Please configure the API key on the server."
-        }
-    
-    try:
-        model = genai.GenerativeModel('gemini-pro')
-        
-        # Créer un prompt plus intelligent qui utilise les résultats de la simulation
-        crop_name = crop_params.get('name', 'the crop')
-        results_summary = json.dumps(sim_results) # Convertit les résultats en texte
-        
-        prompt_lang = "French" if lang == 'it' else "English" # On peut adapter la langue du prompt
+def _generate_temp_comment(temp_agri, crop_params):
+    temp_max = crop_params['temp_max']
+    if temp_agri < 33:
+        return f"Although the peak temperature ({temp_agri:.1f} °C) is higher than the optimal {temp_max}°C for {crop_params.get('name', 'the crop')}, the difference is not significant enough to cause serious heat stress.", "good"
+    else:
+        return f"Even with shading, peak temperature ({temp_agri:.1f} C) exceeds the optimal maximum of {temp_max}°C for {crop_params.get('name', 'the crop')}, indicating a risk of heat stress", "warn"
 
-        prompt = (f"You are an agronomist specializing in agrivoltaics. "
-                  f"Based on the simulation for '{crop_name}' which yielded these results: {results_summary}, "
-                  f"provide a short, insightful analysis (2-3 sentences) in {prompt_lang}. "
-                  f"Focus on the benefits or potential drawbacks shown by the data.")
-                  
-        response = model.generate_content(prompt)
-        ai_text = response.text
-        
-        # On retourne un dictionnaire qui correspond à la structure de `analysis_comments`
-        return {
-            "tag": "ai", # Un tag pour le style CSS si vous voulez
-            "title_key": "ai_analysis_title", # La clé pour la traduction du titre
-            "text": ai_text # Le texte généré par l'IA
-        }
-
-    except Exception as e:
-        print(f"Erreur lors de l'appel à l'API Gemini: {e}")
-        return {
-            "tag": "ai-error",
-            "title_key": "ai_analysis_title",
-            "text": "An error occurred while generating the AI analysis. The agrivoltaic system seems promising for this crop."
-        }
-
-# --- Application Flask ---
-app = Flask(__name__, static_folder='static', static_url_path='')
+# --- Configuration ---
+app = Flask(__name__, template_folder='templates', static_folder='static')
+app.config['LANGUAGES_FOLDER'] = 'languages'
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Endpoint pour servir les fichiers de langue que votre JS demande
-@app.route('/languages/<lang>.json')
-def language(lang):
-    return app.send_static_file(os.path.join('languages', f'{lang}.json'))
-
-# --- L'API endpoint que votre JS appelle ---
 @app.route('/simulate', methods=['POST'])
 def simulate():
     try:
-        # 1. Récupérer les données envoyées par votre script JS
-        inputs = request.get_json()
+        params = request.json
+        sys_params = params['sys_params']
+        crop_params = params['crop_params']
+        mode = params['mode']
+        custom_pitch = params.get('custom_pitch')
+
+        df_env = core.fetch_pvgis_data(sys_params['latitude'], sys_params['longitude'], sys_params['altitude'])
+        if df_env is None:
+            return jsonify({'error': "Erreur lors de la récupération des données de PVGIS."}), 500
         
-        # 2. Lancer votre VRAIE simulation ici
-        sim_results, graph_data = perform_actual_simulation(inputs)
-        
-        # 3. Créer les commentaires basés sur des règles (comme vous faites déjà)
-        # Ceci est un exemple, adaptez-le à votre logique existante
-        analysis_comments = []
-        if inputs['mode'] == 'Optimization':
-             analysis_comments.append({
-                 "tag": "info",
-                 "title_key": "opt_summary_title",
-                 "text": f"The optimization for {inputs['crop_params']['name']} found the best balance at a pitch of {sim_results['pitch']:.1f}m."
-             })
+        analysis_comments = [] # Liste khawya fin ghadi n7etto les commentaires
+
+        if mode == 'Optimization':
+            results, graph_data = core.run_optimization_analysis(df_env, sys_params, crop_params)
+            # Zedna commentaire dyal l'optimization
+            water_text, water_tag = _generate_water_comment(results['water_savings_percent'], results['et_open'], results['et_agri'])
+            analysis_comments.append({'title_key': 'water_comment_title', 'text': water_text, 'tag': water_tag})
         else:
-             analysis_comments.append({
-                 "tag": "info",
-                 "title_key": "custom_summary_title",
-                 "text": f"The simulation with a custom pitch shows water savings of {sim_results['water_savings']:.1f}%."
-             })
+            if not custom_pitch or custom_pitch <= 0:
+                return jsonify({'error': 'La valeur du pitch personnalisé est invalide.'}), 400
+            results, graph_data = core.run_single_pitch_analysis(df_env, sys_params, crop_params, custom_pitch)
+            # Zedna les 3 commentaires
+            water_text, water_tag = _generate_water_comment(results['water_savings'], results['et_open'], results['et_agri'])
+            dli_text, dli_tag = _generate_dli_comment(results['dli_agri'], crop_params)
+            temp_text, temp_tag = _generate_temp_comment(results['peak_temp_agri'], crop_params)
+            analysis_comments.append({'title_key': 'water_comment_title', 'text': water_text, 'tag': water_tag})
+            analysis_comments.append({'title_key': 'dli_comment_title', 'text': dli_text, 'tag': dli_tag})
+            analysis_comments.append({'title_key': 'temp_comment_title', 'text': temp_text, 'tag': temp_tag})
 
-        # 4. === L'AJOUT IMPORTANT ===
-        # Générer le commentaire IA et l'ajouter à la liste
-        # On passe les paramètres de la culture et les résultats pour une meilleure analyse
-        ai_comment = generate_ai_comment(inputs['crop_params'], sim_results)
-        analysis_comments.append(ai_comment)
-
-        # 5. Construire la réponse JSON finale exactement comme votre script l'attend
-        response_data = {
-            "results": sim_results,
-            "graph_data": graph_data,
-            "analysis_comments": analysis_comments # La liste contient maintenant le commentaire de l'IA
-        }
-        
-        return jsonify(response_data)
+        # [MODIFIED v1.2] Siftna hta les commentaires
+        return jsonify({
+            'results': results,
+            'graph_data': graph_data,
+            'analysis_comments': analysis_comments
+        })
 
     except Exception as e:
-        print(f"Erreur dans /simulate: {e}")
-        return jsonify({"error": f"An internal server error occurred: {e}"}), 500
+        print(f"An error occurred: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/languages/<lang_code>.json')
+def get_language(lang_code):
+    return send_from_directory(app.config['LANGUAGES_FOLDER'], f"{lang_code}.json")
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True)

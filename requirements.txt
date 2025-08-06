@@ -4,4 +4,3 @@ pandas
 pvlib
 pyet
 gunicorn
-google-generativeai
