@@ -1,4 +1,3 @@
-<!-- templates/index.html (The Definitive Fix) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,23 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-lang-key="window_title">Agrovoltaic Simulation Tool</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- Ghadi n7etto les scripts l'te7t bach nضمنو kolchi ytcharga mzyan -->
 </head>
 <body>
 
     <div class="main-container">
-        <!-- ==== Colonne des Inputs (katb9a nafs'ha) ==== -->
         <div class="input-frame">
             <h2 data-lang-key="simulation_parameters">Simulation Parameters</h2>
             
             <div class="input-scroll-frame">
-                <!-- 1. Location -->
                 <label class="section-title" data-lang-key="coordinates_location">1. Coordinates & Location</label>
                 <input type="number" id="lat" placeholder="Latitude" value="40.99">
                 <input type="number" id="lon" placeholder="Longitude" value="14.25">
                 <input type="number" id="alt" placeholder="Altitude" value="25">
 
-                <!-- 2. PV System -->
+                <div class="location-actions">
+                    <button id="get_location_name_btn" class="location-btn">Get Location Name</button>
+                    <button id="open_gmaps_btn" class="location-btn">Open in Google Maps</button>
+                </div>
+                <div id="location_name_display" class="location-name"></div>
+
                 <label class="section-title" data-lang-key="pv_system_design">2. PV System Design</label>
                 <input type="number" id="panel_width" placeholder="Panel Width (m)" value="2.38">
                 <input type="number" id="panel_length" placeholder="Panel Length (m)" value="1.13">
@@ -30,7 +31,6 @@
                 <input type="number" id="max_tilt" placeholder="Max Tilt Angle (°)" value="55">
                 <input type="number" id="axis_azimuth" placeholder="Axis Azimuth (°)" value="180">
 
-                <!-- 3. Crop Requirements -->
                 <label class="section-title" data-lang-key="crop_requirements">3. Crop Requirements</label>
                 <input type="text" id="crop_name" placeholder="Crop Name" value="Asparagus">
                 <input type="number" id="dli_min" placeholder="Min DLI (mol/m²/day)" value="12">
@@ -38,7 +38,6 @@
                 <input type="number" id="temp_min" placeholder="Min Optimal Temp (°C)" value="22">
                 <input type="number" id="temp_max" placeholder="Max Optimal Temp (°C)" value="28">
 
-                <!-- 4. Simulation Mode -->
                 <label class="section-title" data-lang-key="simulation_mode">4. Simulation Mode</label>
                 <div class="radio-group">
                     <input type="radio" id="mode_opt" name="sim_mode" value="Optimization" checked>
@@ -51,6 +50,14 @@
                 <input type="number" id="custom_pitch" placeholder="Custom Pitch (m)" value="5.0" disabled>
             </div>
 
+            <div class="theme-switcher-container">
+                <label for="theme_switch" class="theme-switch-label">Dark Mode</label>
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme_switch">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
             <label for="lang_select" data-lang-key="language" class="lang-label">Language</label>
             <select id="lang_select">
                 <option value="en">English</option>
@@ -59,7 +66,6 @@
             <button id="run_simulation_btn" data-lang-key="run_simulation">Run Simulation</button>
         </div>
 
-        <!-- ==== Colonne du Dashboard ==== -->
         <div class="dashboard-frame">
             <div id="welcome_message">
                 <h2>Welcome!</h2>
@@ -75,7 +81,6 @@
                     <div id="key_metrics"></div>
                     <div id="analysis_comments"></div>
                 </div>
-                <!-- Hna fin ghadi ytrsmo les graphs -->
                 <div id="graphs_container">
                     <div class="chart-container">
                         <h3 id="optimizationTitle" style="display: none;">Optimization Results</h3>
@@ -103,7 +108,6 @@
         </div>
     </div>
 
-    <!-- [THE DEFINITIVE FIX] 7ettina kolchi l'scripts hna f'lekher dyal l'body b'tartib s7i7 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.2.1/chartjs-plugin-annotation.min.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>

@@ -1,21 +1,82 @@
-/* static/style.css (v1.1) */
+/* static/style.css (v1.3 Final with Dark Theme using CSS Variables) */
+
+/* 1. Define all colors as variables for the Light Theme (default) */
+:root {
+    --main-bg-color: #f0f2f5;
+    --container-bg-color: #ffffff;
+    --text-color-primary: #333;
+    --text-color-secondary: #555;
+    --text-color-light: #777;
+    --border-color: #e0e0e0;
+    --input-bg-color: #ffffff;
+    --input-border-color: #ccc;
+    --input-disabled-bg: #e9ecef;
+    --section-title-color: #005f73;
+    --button-primary-bg: #007bff;
+    --button-primary-hover-bg: #0056b3;
+    --location-btn-bg: #e9ecef;
+    --location-btn-hover-bg: #d8dde2;
+    --spinner-color: #3498db;
+    --metrics-bg: #f8f9fa;
+    --chart-bg: #ffffff;
+    --chart-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --comment-good-bg: #e9f5ec;
+    --comment-good-border: #28a745;
+    --comment-warn-bg: #fff8e1;
+    --comment-warn-border: #ffc107;
+    --comment-bad-bg: #fbebee;
+    --comment-bad-border: #dc3545;
+}
+
+/* 2. Define the Dark Theme color overrides */
+body.dark-theme {
+    --main-bg-color: #121212;
+    --container-bg-color: #1e1e1e;
+    --text-color-primary: #e0e0e0;
+    --text-color-secondary: #b0b0b0;
+    --text-color-light: #888;
+    --border-color: #333;
+    --input-bg-color: #2a2a2a;
+    --input-border-color: #555;
+    --input-disabled-bg: #3a3a3a;
+    --section-title-color: #4dd0e1;
+    --button-primary-bg: #0d6efd;
+    --button-primary-hover-bg: #0b5ed7;
+    --location-btn-bg: #3a3a3a;
+    --location-btn-hover-bg: #4a4a4a;
+    --spinner-color: #3498db;
+    --metrics-bg: #2a2a2a;
+    --chart-bg: #2a2a2a;
+    --chart-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    --comment-good-bg: #1c3d25;
+    --comment-good-border: #28a745;
+    --comment-warn-bg: #443719;
+    --comment-warn-border: #ffc107;
+    --comment-bad-bg: #4d1c22;
+    --comment-bad-border: #dc3545;
+}
+
+
+/* 3. Apply variables to your existing styles */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f0f2f5;
+    background-color: var(--main-bg-color);
+    color: var(--text-color-primary);
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .main-container {
     display: flex;
     width: 95%;
-    max-width: 1600px; /* Zedt chwiya f l'3erd bach y9edna l'espace */
+    max-width: 1600px;
     height: 90vh;
-    background-color: white;
+    background-color: var(--container-bg-color);
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
@@ -24,33 +85,34 @@ body {
 /* --- Input Frame (Left Column) --- */
 .input-frame {
     width: 380px;
-    background-color: #ffffff;
+    background-color: var(--container-bg-color);
     padding: 20px;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid #e0e0e0;
-    flex-shrink: 0; /* Kanblokiwh bach maydghatch */
+    border-right: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .input-frame h2 {
     text-align: center;
-    color: #333;
+    color: var(--text-color-primary);
     margin-top: 0;
 }
 
 .input-scroll-frame {
     flex-grow: 1;
     overflow-y: auto;
-    padding-right: 10px;
+    padding-right: 15px;
+    margin-right: -15px;
 }
 
 .section-title {
     font-weight: bold;
-    color: #005f73;
+    color: var(--section-title-color);
     margin-top: 20px;
     margin-bottom: 8px;
     display: block;
-    border-bottom: 2px solid #005f73;
+    border-bottom: 2px solid var(--section-title-color);
     padding-bottom: 4px;
 }
 
@@ -58,30 +120,62 @@ input[type="text"], input[type="number"], select {
     width: 100%;
     padding: 10px;
     margin-bottom: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--input-border-color);
     border-radius: 5px;
     box-sizing: border-box;
+    background-color: var(--input-bg-color);
+    color: var(--text-color-primary);
 }
 
 input:disabled {
-    background-color: #e9ecef;
+    background-color: var(--input-disabled-bg);
 }
 
-.radio-group {
-    margin-bottom: 5px;
+.location-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.location-btn {
+    flex: 1;
+    padding: 8px;
+    background-color: var(--location-btn-bg);
+    color: var(--text-color-primary);
+    border: 1px solid var(--input-border-color);
+    border-radius: 5px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.location-btn:hover {
+    background-color: var(--location-btn-hover-bg);
+}
+
+.location-name {
+    margin-top: 10px;
+    font-size: 0.9em;
+    font-weight: bold;
+    min-height: 1.2em;
+    color: var(--section-title-color);
+}
+
+.radio-group label {
+    color: var(--text-color-secondary);
 }
 
 .lang-label {
     margin-top: 15px;
     margin-bottom: 5px;
     font-size: 0.9em;
-    color: #555;
+    color: var(--text-color-secondary);
 }
 
 #run_simulation_btn {
     width: 100%;
     padding: 15px;
-    background-color: #007bff;
+    background-color: var(--button-primary-bg);
     color: white;
     border: none;
     border-radius: 5px;
@@ -93,7 +187,7 @@ input:disabled {
 }
 
 #run_simulation_btn:hover {
-    background-color: #0056b3;
+    background-color: var(--button-primary-hover-bg);
 }
 
 /* --- Dashboard Frame (Right Column) --- */
@@ -106,14 +200,17 @@ input:disabled {
     align-items: center;
 }
 
-#welcome_message h2, #loading_indicator p {
-    color: #777;
-    text-align: center;
+#welcome_message h2 {
+    color: var(--text-color-primary);
+}
+
+#welcome_message p, #loading_indicator p {
+    color: var(--text-color-light);
 }
 
 .spinner {
-    border: 8px solid #f3f3f3;
-    border-top: 8px solid #3498db;
+    border: 8px solid #f3f3f340;
+    border-top: 8px solid var(--spinner-color);
     border-radius: 50%;
     width: 60px;
     height: 60px;
@@ -126,42 +223,39 @@ input:disabled {
     100% { transform: rotate(360deg); }
 }
 
-#results_dashboard {
-    width: 100%;
-}
+#results_dashboard { width: 100%; }
 
 #results_dashboard h2 {
-    color: #005f73;
+    color: var(--section-title-color);
     text-align: center;
 }
 
 .metrics-and-comments {
     display: flex;
+    flex-wrap: wrap;
     gap: 20px;
     margin-bottom: 20px;
 }
 
 #key_metrics {
     flex: 1;
+    min-width: 300px;
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 8px 20px;
-    background-color: #f8f9fa;
+    background-color: var(--metrics-bg);
     padding: 15px;
     border-radius: 8px;
     text-align: left;
     align-content: start;
 }
 
-#key_metrics .metric-label {
-    font-weight: bold;
-}
-#key_metrics .metric-value {
-    justify-self: start;
-}
+#key_metrics .metric-label { font-weight: bold; }
+#key_metrics .metric-value { justify-self: start; }
 
 #analysis_comments {
     flex: 1;
+    min-width: 300px;
 }
 
 #analysis_comments div {
@@ -175,30 +269,91 @@ input:disabled {
     font-weight: bold;
     margin-bottom: 5px;
 }
-.comment-good { border-color: #28a745; background-color: #e9f5ec; }
-.comment-warn { border-color: #ffc107; background-color: #fff8e1; }
-.comment-bad { border-color: #dc3545; background-color: #fbebee; }
 
-/* --- [MODIFIED v1.1] Style dyal les graphs --- */
+.comment-good { border-color: var(--comment-good-border); background-color: var(--comment-good-bg); }
+.comment-warn { border-color: var(--comment-warn-border); background-color: var(--comment-warn-bg); }
+.comment-bad { border-color: var(--comment-bad-border); background-color: var(--comment-bad-bg); }
+
 #graphs_container {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Jouj d'les graphs f'kol satr */
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 20px;
     width: 100%;
     margin-top: 20px;
 }
 
 .chart-container {
-    background-color: #ffffff;
+    background-color: var(--chart-bg);
     padding: 15px;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: var(--chart-shadow);
 }
 
 .chart-container h3 {
     text-align: center;
-    color: #444;
+    color: var(--text-color-primary);
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 1.1em;
+}
+
+/* --- Styles for the Dark Theme Toggle Switch --- */
+.theme-switcher-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin: 15px 0 5px 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.theme-switch-label {
+    font-size: 1em;
+    color: var(--text-color-secondary);
+}
+
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--button-primary-bg);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
 }

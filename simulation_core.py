@@ -112,8 +112,9 @@ def _prepare_graph_data(data_dict, pitch):
     graph_data['irradiance'] = {
         'labels': june_21_data.index.strftime('%H:%M').tolist(),
         'datasets': [
-            {'label': 'Open Field GHI', 'data': june_21_data['ghi'].tolist(), 'borderColor': 'orange', 'tension': 0.1},
-            {'label': f'Agrivoltaic GHI (Pitch = {pitch}m)', 'data': june_21_data['avg_ghi_agrivoltaic'].tolist(), 'borderColor': 'brown', 'tension': 0.1}
+            # [MODIFIED] Using label_key instead of hardcoded label
+            {'label_key': 'graph_legend_open_field_ghi', 'data': june_21_data['ghi'].tolist(), 'borderColor': 'orange', 'tension': 0.1},
+            {'label_key': 'graph_legend_agri_ghi', 'data': june_21_data['avg_ghi_agrivoltaic'].tolist(), 'borderColor': 'brown', 'tension': 0.1, 'pitch': pitch}
         ]
     }
 
@@ -124,7 +125,7 @@ def _prepare_graph_data(data_dict, pitch):
     graph_data['monthly_water'] = {
         'labels': monthly_savings.index.strftime('%b').tolist(),
         'datasets': [
-            {'label': 'Water Saved (mm)', 'data': monthly_savings.tolist(), 'backgroundColor': 'skyblue'}
+            {'label_key': 'graph_legend_water_saved', 'data': monthly_savings.tolist(), 'backgroundColor': 'skyblue'}
         ]
     }
     
@@ -133,7 +134,7 @@ def _prepare_graph_data(data_dict, pitch):
     graph_data['cumulative_water'] = {
         'labels': cumulative_savings.index.strftime('%Y-%m-%d').tolist(),
         'datasets': [
-            {'label': 'Total Water Saved (mm)', 'data': cumulative_savings.tolist(), 'borderColor': 'royalblue', 'tension': 0.1}
+            {'label_key': 'graph_legend_total_water_saved', 'data': cumulative_savings.tolist(), 'borderColor': 'royalblue', 'tension': 0.1}
         ]
     }
     
@@ -141,15 +142,19 @@ def _prepare_graph_data(data_dict, pitch):
     hottest_day = data_dict['df_sim']['temp_air'].idxmax().date()
     hottest_day_data = data_dict['df_sim'][data_dict['df_sim'].index.date == hottest_day]
     graph_data['peak_temp'] = {
-        'title': f'Temperature Profile on Hottest Day ({hottest_day.strftime("%B %d")})',
+        # [MODIFIED] Returning a key and the date separately
+        'title_key': 'graph_title_peak_temp_on_date',
+        'title_date': hottest_day.strftime("%B %d"),
         'labels': hottest_day_data.index.strftime('%H:%M').tolist(),
         'datasets': [
-            {'label': 'Open Field Temperature', 'data': hottest_day_data['temp_air'].tolist(), 'borderColor': 'red', 'tension': 0.1},
-            {'label': 'Agrivoltaic Temperature', 'data': hottest_day_data['temp_agrivoltaic'].tolist(), 'borderColor': 'green', 'tension': 0.1, 'borderDash': [5, 5]}
+            {'label_key': 'graph_legend_open_field_temp', 'data': hottest_day_data['temp_air'].tolist(), 'borderColor': 'red', 'tension': 0.1},
+            {'label_key': 'graph_legend_agri_temp', 'data': hottest_day_data['temp_agrivoltaic'].tolist(), 'borderColor': 'green', 'tension': 0.1, 'borderDash': [5, 5]}
         ]
     }
     
     return graph_data
+
+
 
 def run_single_pitch_analysis(df_env_base, system_params, crop_params, pitch):
     df_sim, water_savings, et_open, et_agri, et_open_series, et_agri_series = _run_shading_and_et_simulation(df_env_base.copy(), system_params, pitch)
