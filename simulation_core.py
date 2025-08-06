@@ -1,4 +1,4 @@
-# simulation_core.py (v1.1)
+# simulation_core.py (v1.2 - Faster Optimization)
 # Fih nafs l'hissab, walakin mab9ach kayressem, ghir kayjma3 data.
 
 import pandas as pd
@@ -102,47 +102,28 @@ def _calculate_crop_metrics(df_sim):
     
     return dli_open, dli_agrivoltaic, peak_temp_open, peak_temp_agri
 
-# --- [MODIFIED v1.1] ---
-# Mab9inach kanressmo, wellina kanwejjdo data l'JavaScript
 def _prepare_graph_data(data_dict, pitch):
     graph_data = {}
-
-    # --- Graph 1: Summer Solstice Irradiance ---
-    june_21_data = data_dict['df_sim'][data_dict['df_sim'].index.strftime('%m-%d') == '06-21']
     graph_data['irradiance'] = {
-        'labels': june_21_data.index.strftime('%H:%M').tolist(),
+        'labels': data_dict['df_sim'][data_dict['df_sim'].index.strftime('%m-%d') == '06-21'].index.strftime('%H:%M').tolist(),
         'datasets': [
-            # [MODIFIED] Using label_key instead of hardcoded label
-            {'label_key': 'graph_legend_open_field_ghi', 'data': june_21_data['ghi'].tolist(), 'borderColor': 'orange', 'tension': 0.1},
-            {'label_key': 'graph_legend_agri_ghi', 'data': june_21_data['avg_ghi_agrivoltaic'].tolist(), 'borderColor': 'brown', 'tension': 0.1, 'pitch': pitch}
+            {'label_key': 'graph_legend_open_field_ghi', 'data': data_dict['df_sim'][data_dict['df_sim'].index.strftime('%m-%d') == '06-21']['ghi'].tolist(), 'borderColor': 'orange', 'tension': 0.1},
+            {'label_key': 'graph_legend_agri_ghi', 'data': data_dict['df_sim'][data_dict['df_sim'].index.strftime('%m-%d') == '06-21']['avg_ghi_agrivoltaic'].tolist(), 'borderColor': 'brown', 'tension': 0.1, 'pitch': pitch}
         ]
     }
-
-    # --- Graph 2: Monthly Water Savings ---
-    monthly_et_open = data_dict['et_open'].resample('ME').sum()
-    monthly_et_agri = data_dict['et_agri'].resample('ME').sum()
-    monthly_savings = monthly_et_open - monthly_et_agri
+    monthly_savings = data_dict['et_open'].resample('ME').sum() - data_dict['et_agri'].resample('ME').sum()
     graph_data['monthly_water'] = {
         'labels': monthly_savings.index.strftime('%b').tolist(),
-        'datasets': [
-            {'label_key': 'graph_legend_water_saved', 'data': monthly_savings.tolist(), 'backgroundColor': 'skyblue'}
-        ]
+        'datasets': [{'label_key': 'graph_legend_water_saved', 'data': monthly_savings.tolist(), 'backgroundColor': 'skyblue'}]
     }
-    
-    # --- Graph 3: Cumulative Water Savings ---
     cumulative_savings = (data_dict['et_open'] - data_dict['et_agri']).cumsum()
     graph_data['cumulative_water'] = {
         'labels': cumulative_savings.index.strftime('%Y-%m-%d').tolist(),
-        'datasets': [
-            {'label_key': 'graph_legend_total_water_saved', 'data': cumulative_savings.tolist(), 'borderColor': 'royalblue', 'tension': 0.1}
-        ]
+        'datasets': [{'label_key': 'graph_legend_total_water_saved', 'data': cumulative_savings.tolist(), 'borderColor': 'royalblue', 'tension': 0.1}]
     }
-    
-    # --- Graph 4: Temperature on Hottest Day ---
     hottest_day = data_dict['df_sim']['temp_air'].idxmax().date()
     hottest_day_data = data_dict['df_sim'][data_dict['df_sim'].index.date == hottest_day]
     graph_data['peak_temp'] = {
-        # [MODIFIED] Returning a key and the date separately
         'title_key': 'graph_title_peak_temp_on_date',
         'title_date': hottest_day.strftime("%B %d"),
         'labels': hottest_day_data.index.strftime('%H:%M').tolist(),
@@ -151,10 +132,7 @@ def _prepare_graph_data(data_dict, pitch):
             {'label_key': 'graph_legend_agri_temp', 'data': hottest_day_data['temp_agrivoltaic'].tolist(), 'borderColor': 'green', 'tension': 0.1, 'borderDash': [5, 5]}
         ]
     }
-    
     return graph_data
-
-
 
 def run_single_pitch_analysis(df_env_base, system_params, crop_params, pitch):
     df_sim, water_savings, et_open, et_agri, et_open_series, et_agri_series = _run_shading_and_et_simulation(df_env_base.copy(), system_params, pitch)
@@ -166,14 +144,17 @@ def run_single_pitch_analysis(df_env_base, system_params, crop_params, pitch):
         "peak_temp_open": peak_temp_open, "peak_temp_agri": peak_temp_agri
     }
     
-    # [MODIFIED v1.1] Kanwejjdo data dyal l'graph, ماشي les images
     plot_data_for_js = {'df_sim': df_sim, 'et_open': et_open_series, 'et_agri': et_agri_series}
     graph_data = _prepare_graph_data(plot_data_for_js, pitch)
     
     return results, graph_data
 
 def run_optimization_analysis(df_env_base, system_params, crop_params):
-    pitch_options = np.arange(4.0, 10.5, 0.5)
+    # --- [THE FIX IS HERE] ---
+    # We change the step from 0.5 to 1.0 to make the calculation twice as fast.
+    # We also change the end of the range to 11.0 to include 10.0.
+    pitch_options = np.arange(4.0, 11.0, 1.0)
+    
     results_list = []
 
     for pitch in pitch_options:
@@ -185,19 +166,17 @@ def run_optimization_analysis(df_env_base, system_params, crop_params):
     results_df = pd.DataFrame(results_list)
     optimal_pitch_data = results_df.loc[results_df['water_savings_percent'].idxmax()]
 
-    # [MODIFIED v1.1] Kanwejjdo data dyal l'graph dyal l'optimization
     graph_data = {
         'optimization': {
             'labels': results_df['pitch'].tolist(),
             'datasets': [
-                {'label': 'Simulated Savings', 'data': results_df['water_savings_percent'].tolist(), 'borderColor': 'blue', 'tension': 0.1}
+                {'label_key': 'graph_legend_opt_savings', 'data': results_df['water_savings_percent'].tolist(), 'borderColor': 'blue', 'tension': 0.1}
             ],
             'optimal_pitch': optimal_pitch_data['pitch'],
             'max_savings': optimal_pitch_data['water_savings_percent']
         }
     }
     
-    # Kanwejjdo hta les graphs l'okhrin dyal l'optimal pitch
     _ , single_pitch_graph_data = run_single_pitch_analysis(df_env_base, system_params, crop_params, optimal_pitch_data['pitch'])
     graph_data.update(single_pitch_graph_data)
     
