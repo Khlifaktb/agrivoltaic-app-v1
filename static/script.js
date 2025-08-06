@@ -1,4 +1,4 @@
-// static/script.js (v1.3 Final - With LIVE Dark Theme Chart Fix)
+// static/script.js (v1.3 Final - With Google Maps URL Fix)
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- Dark Theme Logic ---
@@ -12,28 +12,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- [THE FIX IS HERE] ---
-    // This listener now updates existing charts in real-time
     themeSwitch.addEventListener('change', function() {
-        // 1. Toggle the theme on the body and save the preference
         document.body.classList.toggle('dark-theme', this.checked);
         localStorage.setItem('theme', this.checked ? 'dark-theme' : 'light-theme');
         
-        // 2. Define the new colors based on the new theme
         const isDark = this.checked;
         const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
         const textColor = isDark ? '#e0e0e0' : '#333';
 
-        // 3. Loop through all active charts and update their options
         for (const chartId in activeCharts) {
             const chart = activeCharts[chartId];
-            
-            // Update legend colors
             if (chart.options.plugins && chart.options.plugins.legend) {
                 chart.options.plugins.legend.labels.color = textColor;
             }
-            
-            // Update scale (axes) colors
             if (chart.options.scales) {
                 if(chart.options.scales.x) {
                     chart.options.scales.x.ticks.color = textColor;
@@ -44,12 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     chart.options.scales.y.grid.color = gridColor;
                 }
             }
-            
-            // 4. Tell the chart to redraw itself with the new colors
             chart.update();
         }
     });
-
 
     // --- Get all other elements ---
     const runBtn = document.getElementById('run_simulation_btn');
@@ -110,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getInputs() {
-        // This function is unchanged
         const inputs = [
             document.getElementById('lat').value, document.getElementById('lon').value, document.getElementById('alt').value,
             document.getElementById('panel_width').value, document.getElementById('panel_length').value,
@@ -145,7 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function runSimulation() {
-        // This function is unchanged
         const inputs = getInputs();
         if (!inputs) {
             displayError("Please fill in all required fields.");
@@ -183,7 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayError(message) {
-        // This function is unchanged
         loadingIndicator.style.display = 'none';
         resultsDashboard.style.display = 'none';
         errorMessageDiv.textContent = message;
@@ -191,14 +176,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function destroyActiveCharts() {
-        // This function is unchanged
         if (typeof Chart === 'undefined') return;
         Object.values(activeCharts).forEach(chart => chart.destroy());
         activeCharts = {};
     }
 
     function createChart(canvasId, type, data, options = {}) {
-        // This function sets the colors on INITIAL creation
         if (typeof Chart === 'undefined') {
             console.error("Chart.js is not loaded, cannot create chart.");
             return;
@@ -237,7 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayResults(data, inputs) {
-        // This function is unchanged
         resultsDashboard.style.display = 'block';
         const { results, graph_data, analysis_comments } = data;
         const { mode, custom_pitch } = inputs;
@@ -340,7 +322,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function addMetric(container, label, value) {
-        // This function is unchanged
         const labelDiv = document.createElement('div');
         labelDiv.className = 'metric-label';
         labelDiv.textContent = label;
@@ -352,7 +333,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function getLocationName() {
-        // This function is unchanged
         const lat = document.getElementById('lat').value;
         const lon = document.getElementById('lon').value;
 
@@ -383,12 +363,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- [THE FIX IS HERE] ---
+    // This is the corrected function for opening Google Maps
     function openGoogleMaps() {
-        // This function is unchanged
         const lat = document.getElementById('lat').value;
         const lon = document.getElementById('lon').value;
-        if (!lat || !lon) { alert('Please enter Latitude and Longitude first.'); return; }
-        const url = `http://googleusercontent.com/maps/google.com/1{lat},${lon}`;
+        if (!lat || !lon) { 
+            alert('Please enter Latitude and Longitude first.'); 
+            return; 
+        }
+        // Use the correct URL format and ensure both variables are substituted correctly
+        const url = `https://maps.google.com/?q=${lat},${lon}`;
         window.open(url, '_blank');
     }
 });
