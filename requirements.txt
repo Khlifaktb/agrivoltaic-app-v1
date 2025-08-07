@@ -5,5 +5,3 @@ pvlib
 pyet
 gunicorn
 geopy
-google-generativeai
-python-dotenv
